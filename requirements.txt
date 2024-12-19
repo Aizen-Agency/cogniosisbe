@@ -6,4 +6,6 @@ gunicorn
 python-dotenv
 psycopg2-binary
 gunicorn
-
+requests
+Flask-CORS
+SQLAlchemy
