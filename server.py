@@ -139,7 +139,7 @@ def login():
     if not user:
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    access_token = create_access_token(identity=user.id, expires_delta=timedelta(days=1))
+    access_token = create_access_token(identity=str(user.id), expires_delta=timedelta(days=1))
     return jsonify({
         'access_token': access_token,
         'user': {
@@ -225,8 +225,9 @@ def create_task():
 @tasks.route('/tasks', methods=['GET'])
 @jwt_required()
 def get_tasks():
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     tasks = Task.query.filter_by(user_id=current_user_id).all()
+    
     
     return jsonify([{
         'id': task.id,
