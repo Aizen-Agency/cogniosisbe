@@ -148,6 +148,26 @@ def login():
             'username': user.username
         }
     })
+    
+@app.route('/email_login', methods=['POST'])
+def email_login():
+    data = request.json
+    email = data.get('email')
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'message': 'Invalid email'}), 401
+
+    access_token = create_access_token(identity=str(user.id), expires_delta=timedelta(days=1))
+    return jsonify({
+        'access_token': access_token,
+        'user': {
+            'id': user.id,
+            'email': user.email,
+            'username': user.username
+        }
+    })
+
 
 @app.route('/auth/<provider>', methods=['GET'])
 def social_login(provider):
