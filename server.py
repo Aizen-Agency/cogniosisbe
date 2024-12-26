@@ -282,7 +282,6 @@ def get_task(task_id):
     
     
 @tasks.route('/get-keys', methods=['GET'])
-@jwt_required()
 def get_keys():
     try:
         openai_key = os.getenv('OPENAI_API_KEY')
