@@ -58,6 +58,7 @@ class User(db.Model):
     password = db.Column(db.String(120), nullable=True)  # Nullable for social logins
     social_id = db.Column(db.String(120), unique=True, nullable=True)
     provider = db.Column(db.String(50), nullable=True)  # e.g., google, meta, apple
+    name = db.Column(db.String(120), nullable=True)  # Optional name field
 
 # Define Task Model
 class Task(db.Model):
@@ -120,11 +121,12 @@ def signup():
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
+    name = data.get('name')  # Optional name field
 
     if User.query.filter_by(email=email).first():
         return jsonify({'message': 'User already exists'}), 400
 
-    new_user = User(username=username, email=email, password=password)
+    new_user = User(username=username, email=email, password=password, name=name)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'message': 'User created successfully'}), 201
@@ -145,7 +147,8 @@ def login():
         'user': {
             'id': user.id,
             'email': user.email,
-            'username': user.username
+            'username': user.username,
+            'name': user.name  # Include name in response
         }
     })
     
@@ -164,7 +167,8 @@ def email_login():
         'user': {
             'id': user.id,
             'email': user.email,
-            'username': user.username
+            'username': user.username,
+            'name': user.name  # Include name in response
         }
     })
 
@@ -205,7 +209,8 @@ def profile():
         'user': {
             'id': user.id,
             'email': user.email,
-            'username': user.username
+            'username': user.username,
+            'name': user.name  # Include name in response
         }
     }), 200
 
