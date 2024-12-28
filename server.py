@@ -280,7 +280,31 @@ def get_task(task_id):
         'is_completed': task.is_completed
     }), 200
     
+
+@tasks.route('/user/update', methods=['POST'])
+@jwt_required()
+def update_user():
+    current_user_id = get_jwt_identity()
+    data = request.json
     
+    try:
+        user = User.query.filter_by(id=current_user_id).first()
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if 'name' in data:
+            user.name = data['name']
+        if 'email' in data:
+            user.email = data['email']
+        
+        db.session.commit()
+        return jsonify({'message': 'User updated successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+  
 @tasks.route('/get-keys', methods=['GET'])
 def get_keys():
     try:
