@@ -397,8 +397,11 @@ habits = Blueprint('habits', __name__)
 @habits.route('/habits', methods=['POST'])
 @jwt_required()
 def create_habit():
+    print("Creating habit")
     current_user_id = get_jwt_identity()
+    print(f"Current user ID: {current_user_id}")
     data = request.json
+    print(f"Received data: {data}")
     try:
         new_habit = Habit(
             name=data['name'],
@@ -410,6 +413,7 @@ def create_habit():
         db.session.commit()
         return jsonify({'message': 'Habit created successfully', 'habit_id': new_habit.id}), 201
     except Exception as e:
+        print(f"Error creating habit: {str(e)}")
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
@@ -466,6 +470,24 @@ def delete_habit(habit_id):
 
 # Register the habits Blueprint
 app.register_blueprint(habits)
+
+@app.route('/reset_password', methods=['POST'])
+def reset_password():
+    data = request.json
+    email = data.get('email')
+    new_password = data.get('new_password')
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    try:
+        user.password = new_password
+        db.session.commit()
+        return jsonify({'message': 'Password reset successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
     initialize_db()
