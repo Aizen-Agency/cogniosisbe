@@ -80,6 +80,22 @@ class Task(db.Model):
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, onupdate=func.now())
 
+# Define Habit Model
+class Habit(db.Model):
+    __tablename__ = 'habits'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    time = db.Column(db.String(50), nullable=False)  # Store time as a string
+    days = db.Column(db.ARRAY(db.String), nullable=False)  # Store days as an array of strings
+    
+    # Foreign key to User
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, server_default=func.now())
+    updated_at = db.Column(db.DateTime, onupdate=func.now())
+
 def initialize_db():
     with app.app_context():
         db.create_all()
@@ -376,6 +392,82 @@ def delete_task(task_id):
 # Register the tasks Blueprint
 app.register_blueprint(tasks)
 
+habits = Blueprint('habits', __name__)
+
+@habits.route('/habits', methods=['POST'])
+@jwt_required()
+def create_habit():
+    current_user_id = get_jwt_identity()
+    data = request.json
+    try:
+        new_habit = Habit(
+            name=data['name'],
+            time=data['time'],
+            days=data['days'],
+            user_id=current_user_id
+        )
+        db.session.add(new_habit)
+        db.session.commit()
+        return jsonify({'message': 'Habit created successfully', 'habit_id': new_habit.id}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+@habits.route('/habits', methods=['GET'])
+@jwt_required()
+def get_habits():
+    current_user_id = get_jwt_identity()
+    habits = Habit.query.filter_by(user_id=current_user_id).all()
+    return jsonify([{
+        'id': habit.id,
+        'name': habit.name,
+        'time': habit.time,
+        'days': habit.days
+    } for habit in habits]), 200
+
+@habits.route('/habits/<int:habit_id>', methods=['PUT'])
+@jwt_required()
+def update_habit(habit_id):
+    current_user_id = get_jwt_identity()
+    habit = Habit.query.filter_by(id=habit_id, user_id=current_user_id).first()
+    if not habit:
+        return jsonify({'error': 'Habit not found'}), 404
+    
+    data = request.json
+    try:
+        if 'name' in data:
+            habit.name = data['name']
+        if 'time' in data:
+            habit.time = data['time']
+        if 'days' in data:
+            habit.days = data['days']
+        
+        db.session.commit()
+        return jsonify({'message': 'Habit updated successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+@habits.route('/habits/<int:habit_id>', methods=['DELETE'])
+@jwt_required()
+def delete_habit(habit_id):
+    current_user_id = get_jwt_identity()
+    habit = Habit.query.filter_by(id=habit_id, user_id=current_user_id).first()
+    if not habit:
+        return jsonify({'error': 'Habit not found'}), 404
+    
+    try:
+        db.session.delete(habit)
+        db.session.commit()
+        return jsonify({'message': 'Habit deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+# Register the habits Blueprint
+app.register_blueprint(habits)
+
 if __name__ == '__main__':
     initialize_db()
     app.run(debug=True) 
+
