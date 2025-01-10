@@ -475,11 +475,15 @@ app.register_blueprint(habits)
 def reset_password():
     data = request.json
     email = data.get('email')
+    old_password = data.get('old_password')
     new_password = data.get('new_password')
 
     user = User.query.filter_by(email=email).first()
     if not user:
         return jsonify({'message': 'User not found'}), 404
+    
+    if user.password != old_password:
+        return jsonify({'message': 'Old password is incorrect'}), 400
 
     try:
         user.password = new_password
