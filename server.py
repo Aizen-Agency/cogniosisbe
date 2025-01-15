@@ -494,6 +494,23 @@ def reset_password():
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
+@app.route('/delete_account', methods=['DELETE'])
+@jwt_required()
+def delete_account():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({'message': 'Account deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
 if __name__ == '__main__':
     initialize_db()
     app.run(debug=True) 
