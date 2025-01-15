@@ -333,9 +333,10 @@ def get_keys():
         hume_api_key = os.getenv('HUME_API_KEY')
         hume_secret_key = os.getenv('HUME_SECRET_KEY')
         hume_config_id = os.getenv('HUME_CONFIG_ID')
+        hume_config_id_chat = os.getenv('HUME_CONFIG_ID_CHAT')
         if not openai_key:
             return jsonify({'error': 'OpenAI key not found'}), 404
-        return jsonify({'openai_key': openai_key, 'hume_api_key': hume_api_key, 'hume_secret_key': hume_secret_key, 'hume_config_id': hume_config_id}), 200
+        return jsonify({'openai_key': openai_key, 'hume_api_key': hume_api_key, 'hume_secret_key': hume_secret_key, 'hume_config_id': hume_config_id, 'hume_config_id_chat': hume_config_id_chat}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
